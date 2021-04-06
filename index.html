@@ -54,15 +54,17 @@
                   body: JSON.stringify(peliculas)
                 });
                 const {uri} = await res.json();
+                console.log(uri);
                 return uri;               
             } catch (err) {
                 alert("No se ha podido crear el endpoint.")
             }
         }
-        const getAPI = async () => {
+        const getAPI = async (url) => {
             // Completar: Llamar a la API para leer la información guardada en myjson a través de la API
-
-          
+            console.log("paso por get");
+            let response = await fetch(url);
+		    return await response.json();
         }
         const updateAPI = async (peliculas) => {
             // Completar: Actualizar la información a través de la API
@@ -153,14 +155,17 @@
         // CONTROLADORES 
 
         const initContr = async () => {
+            
             if (!localStorage.URL || localStorage.URL === "undefined") {
                 localStorage.URL = await postAPI(mis_peliculas_iniciales);
+                console.log("paso por init");
             }
             indexContr();
         }
 
         const indexContr = async () => {
-            mis_peliculas = await getAPI() || [];
+            console.log("paso por index");
+            mis_peliculas = await getAPI(localStorage.URL) || [];
             document.getElementById('main').innerHTML = await indexView(mis_peliculas);
         }
 
