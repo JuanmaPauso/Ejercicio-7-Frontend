@@ -2,7 +2,7 @@
     <title>Mis Películas</title>
     <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
     <style>
-        body { --primary: #6200ee; --secondary: #29b6f6; margin: 0px;}
+        body { --primary: brown; --secondary: #29b6f6; margin: 0px;}
         * {font-family: 'Roboto', sans-serif;}
         button { 
             -webkit-font-smoothing: antialiased;
@@ -62,20 +62,27 @@
         }
         const getAPI = async (url) => {
             // Completar: Llamar a la API para leer la información guardada en myjson a través de la API
-
-            let response = await fetch(url);
-            mis_peliculas = await response.json();
-            return mis_peliculas;
+            try {
+                let response = await fetch(url);
+                return await response.json();
+            }catch (err) {
+                alert(err)
+            }
             
         }
         const updateAPI = async (peliculas) => {
             // Completar: Actualizar la información a través de la API
+            try {
                 let response = await fetch(
                 localStorage.URL, 
                 {   method: 'PUT',
                     headers: {"Content-Type": "application/json",},
                     body: JSON.stringify(peliculas)
                 });
+
+            }catch (err) {
+                alert(err)
+            }       
     
         }
 
@@ -228,7 +235,7 @@
 
         const editContr = async (i) => {
             
-            document.getElementById('main').innerHTML = editView(i,  mis_peliculas[i]);
+            document.getElementById('main').innerHTML = editView(i, mis_peliculas[i]);
             
         }
 
