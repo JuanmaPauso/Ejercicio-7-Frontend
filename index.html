@@ -62,12 +62,21 @@
         }
         const getAPI = async (url) => {
             // Completar: Llamar a la API para leer la información guardada en myjson a través de la API
-            console.log("paso por get");
+
             let response = await fetch(url);
-		    return await response.json();
+            mis_peliculas = await response.json();
+            return mis_peliculas;
+            
         }
         const updateAPI = async (peliculas) => {
             // Completar: Actualizar la información a través de la API
+                let response = await fetch(
+                localStorage.URL, 
+                {   method: 'PUT',
+                    headers: {"Content-Type": "application/json",},
+                    body: JSON.stringify(peliculas)
+                });
+    
         }
 
  
@@ -87,13 +96,18 @@
                        ${peliculas[i].titulo || "<em>Sin título</em>"}
                    </div>
                    <div class="actions">
+                        <button class="show" data-my-id="${i}">Ver</button>
                        <button class="edit" data-my-id="${i}">editar</button>
+                       <button class="delete" data-my-id="${i}">Borrar</button>
                     </div>
                 </div>\n`;
               i = i + 1;
             };
 
             view += `<div class="actions">
+
+                        <button class="new">Añadir</button>
+                        <button class="reset">Reset</button>
                         <!--Insertar aquí botones de "Añadir" y "Reset"-->
                     </div>`;
 
@@ -132,10 +146,14 @@
             // ...
 
             return `
+            <div class="movie" style=" font-size: 12px">
              <p>
-             
-             
+            <strong style="color: var(--primary); text-transform: uppercase; font-size: 12px;">Titulo:</strong> ${pelicula.titulo}
              </p>
+             <p>
+            <strong style="color: var(--primary); text-transform: uppercase; font-size: 12px;">Director:</strong> ${pelicula.director}
+            </p>
+            </div>
              <div class="actions">
                 <button class="index">Volver</button>
              </div>`;
@@ -146,7 +164,22 @@
             // ...
 
             return `<h2>Crear Película</h2>
+            Título <br>
+                <input  type="text" id="titulo" placeholder="Título" 
+                        value="">
+                </div>
+                <div class="field">
+                Director <br>
+                <input  type="text" id="director" placeholder="Director" 
+                        value="">
+                </div>
+                <div class="field">
+                Miniatura <br>
+                <input  type="text" id="miniatura" placeholder="URL de la miniatura" 
+                        value="">
+                </div>
                 <div class="actions">
+                    <button class="create">Crear</button>
                     <button class="index">Volver</button>
                 </div>`;
         }
@@ -158,31 +191,45 @@
             
             if (!localStorage.URL || localStorage.URL === "undefined") {
                 localStorage.URL = await postAPI(mis_peliculas_iniciales);
-                console.log("paso por init");
             }
             indexContr();
         }
 
         const indexContr = async () => {
-            console.log("paso por index");
             mis_peliculas = await getAPI(localStorage.URL) || [];
             document.getElementById('main').innerHTML = await indexView(mis_peliculas);
         }
 
         const showContr = (i) => {
             // Completar: controlador que muestra la vista showView()
+            let pelicula = mis_peliculas[i];
+            document.getElementById('main').innerHTML = showView(pelicula);
         }
 
         const newContr = () => {
             // Completar: controlador que muestra la vista newView()
+            document.getElementById('main').innerHTML = newView();
+
         }
 
         const createContr = async () => {
             // Completar: controlador que crea una película nueva en el modelo guardado en myjson
+            let titulo = document.getElementById('titulo').value;
+            let director = document.getElementById('director').value;
+            let miniatura = document.getElementById('miniatura').value;
+
+            let nuevapelicula = {titulo: `${titulo}`,   director: `${director}`, "miniatura": `${miniatura}`};
+
+            mis_peliculas.push(nuevapelicula);
+            await updateAPI(mis_peliculas);
+            indexContr();
+            
         }
 
-        const editContr = (i) => {
+        const editContr = async (i) => {
+            
             document.getElementById('main').innerHTML = editView(i,  mis_peliculas[i]);
+            
         }
 
         const updateContr = async (i) => {
@@ -191,15 +238,26 @@
             mis_peliculas[i].miniatura = document.getElementById('miniatura').value;
             await updateAPI(mis_peliculas);
             indexContr();
+           
         }
 
         const deleteContr = async (i) => {
             // Completar:  controlador que actualiza el modelo borrando la película seleccionada
             // Genera diálogo de confirmación: botón Aceptar devuelve true, Cancel false
+            let confirmacion = confirm(`¿Quieres eliminar la pelicua: ${mis_peliculas[i].titulo}?`);
+            if (confirmacion === true){
+            mis_peliculas.splice(i,1);
+            await updateAPI(mis_peliculas);
+            indexContr();
+            }
         }
 
         const resetContr = async () => {
             // Completar:  controlador que reinicia el modelo guardado en myjson con las películas originales
+            mis_peliculas = mis_peliculas_iniciales;
+            await updateAPI(mis_peliculas);
+            indexContr();
+            
         }
 
         // ROUTER de eventos
@@ -210,6 +268,11 @@
             if      (matchEvent(ev, '.index'))  indexContr  ();
             else if (matchEvent(ev, '.edit'))   editContr   (myId(ev));
             else if (matchEvent(ev, '.update')) updateContr (myId(ev));
+            else if (matchEvent(ev, '.show')) showContr (myId(ev));
+            else if (matchEvent(ev, '.new')) newContr ();
+            else if (matchEvent(ev, '.create')) createContr ();
+            else if (matchEvent(ev, '.delete')) deleteContr (myId(ev));
+            else if (matchEvent(ev, '.reset')) resetContr ();
         })
         
         
